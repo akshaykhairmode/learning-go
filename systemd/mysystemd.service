@@ -1,0 +1,7 @@
+[unit]
+Description=Simple Service File example
+
+[service]
+ExecStart=/home/akshay/learning-go/systemd/main
+Restart=on-failure
+TimeoutSec=30
