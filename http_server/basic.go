@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func main() {
 
@@ -11,7 +14,7 @@ func main() {
 	http.HandleFunc("/first", handleFirst)
 	http.HandleFunc("/second", handleSecond)
 
-	http.ListenAndServe(":7000", nil)
+	fmt.Println(http.ListenAndServe(":7000", nil))
 
 }
 
