@@ -12,6 +12,8 @@ import (
 
 var userData = users{data: make(map[int]details), RWMutex: &sync.RWMutex{}}
 
+var strToIntResponse = response{statusCode: 400, Status: "failed", Message: "Invalid ID passed"}
+
 type response struct {
 	Status     string   `json:"status"`
 	Message    string   `json:"message"`
@@ -62,7 +64,7 @@ func (mh jsonHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	rw.WriteHeader(resp.statusCode)
 	rw.Write(respBytes)
-
+	fmt.Println("------------------------------------------")
 }
 
 func main() {
@@ -80,16 +82,13 @@ func delUser(idStr string) response {
 
 	fmt.Println("Got ID : ", idStr)
 
-	var resp response
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		fmt.Println(err)
-		resp.statusCode = 400
-		resp.Status = "failed"
-		resp.Message = "Invalid ID passed"
-		return resp
+		return strToIntResponse
 	}
+
+	var resp response
 
 	userData.Lock()
 	delete(userData.data, id)
@@ -111,10 +110,7 @@ func getUser(idStr string) response {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		fmt.Println(err)
-		resp.statusCode = 400
-		resp.Status = "failed"
-		resp.Message = "Invalid ID passed"
-		return resp
+		return strToIntResponse
 	}
 
 	resp.statusCode = 200
