@@ -32,16 +32,15 @@ func main() {
 
 	chatroom := r.PathPrefix("/chatroom").Subrouter()
 	chatroom.HandleFunc("/create/{name}", CR(CreateChatroom)).Methods(http.MethodPost)
-	chatroom.HandleFunc("/delete/{id}", CR(DeleteChatroom)).Methods(http.MethodDelete)
-	// chatroom.HandleFunc("/add", AddUserToChatroom).Methods(http.MethodPut)
-	chatroom.HandleFunc("/connect/{id}", WS(handleChatroomWS))
+	chatroom.HandleFunc("/connect", clientMW(chatroomWSHandler))
 
-	// user := r.PathPrefix("/user").Subrouter()
-	// user.HandleFunc("/connect/{id}")
+	client := r.PathPrefix("/client").Subrouter()
+	client.HandleFunc("/list", ListAllClients).Methods(http.MethodGet)
+	// client.HandleFunc("/connect")
 
 	log.Println("Registered Handlers")
 
 	// chat := r.PathPrefix("/chat").Subrouter()
-	log.Println("Started Server")
+	log.Printf("Started Server on port : %v", port)
 	http.ListenAndServe(":"+port, r)
 }

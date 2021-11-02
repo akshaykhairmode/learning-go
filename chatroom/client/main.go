@@ -21,20 +21,17 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "ws", Host: *addr, Path: "/chatroom/connect/dc7fd5c9-1ad1-44ef-acd5-727792162297"}
+	u := url.URL{Scheme: "ws", Host: *addr, Path: "/chatroom/connect"}
 	log.Printf("connecting to %s", u.String())
 
 	h := http.Header{}
 	h.Add("name", "akshay")
 
-	c, resp, err := websocket.DefaultDialer.Dial(u.String(), h)
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), h)
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
 	defer c.Close()
-
-	log.Println("resp.Request.Header", resp.Request.Header)
-	log.Println("Headers", resp.Header)
 
 	done := make(chan struct{})
 
@@ -58,7 +55,7 @@ func main() {
 		case <-done:
 			return
 		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
+			err := c.WriteMessage(websocket.TextMessage, []byte("CLIENT-2 :::: "+t.String()))
 			if err != nil {
 				log.Println("write:", err)
 				return
