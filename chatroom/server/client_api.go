@@ -13,6 +13,9 @@ type ClientList struct {
 
 func (gc *globalClients) list() []ClientList {
 
+	gc.RLock()
+	defer gc.RUnlock()
+
 	out := []ClientList{}
 
 	for _, cl := range gc.data {
@@ -24,7 +27,7 @@ func (gc *globalClients) list() []ClientList {
 
 func ListAllClients(rw http.ResponseWriter, r *http.Request) {
 
-	data := GlobalClients.list()
+	data := GC.list()
 
 	enc, err := json.Marshal(data)
 	if err != nil {
