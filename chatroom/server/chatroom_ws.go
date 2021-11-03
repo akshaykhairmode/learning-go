@@ -73,7 +73,7 @@ func (r *Rooms) create(name string) ChatroomID {
 
 	rooms.Wg.Add(1)
 	go cr.broadcaster(rooms.Wg)
-	log.Printf("Chatroom Created - URL : ws://localhost:%v/chatroom/connect/%v", port, crID)
+	log.Printf("Chatroom Created - URL : ws://localhost:%v/chatroom/connect", port)
 	return crID
 }
 
