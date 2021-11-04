@@ -63,6 +63,25 @@ func CreateChatroom(crmd CRMiddlewareData, rw http.ResponseWriter) {
 	rw.Write(out)
 }
 
+func ListChatroom(crmd CRMiddlewareData, rw http.ResponseWriter) {
+
+	output := []map[string]string{}
+
+	rooms.RLock()
+	for _, cr := range rooms.Data {
+		chatroomInfo := map[string]string{}
+		chatroomInfo["id"] = string(cr.ID)
+		chatroomInfo["name"] = cr.Name
+		output = append(output, chatroomInfo)
+	}
+	rooms.RUnlock()
+
+	data, _ := json.Marshal(output)
+
+	rw.WriteHeader(200)
+	rw.Write(data)
+}
+
 func generateRandomName() string {
 	seed := time.Now().UTC().UnixNano()
 	nameGenerator := namegenerator.NewNameGenerator(seed)

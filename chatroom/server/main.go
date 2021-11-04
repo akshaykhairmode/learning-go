@@ -32,6 +32,7 @@ func main() {
 
 	chatroom := r.PathPrefix("/chatroom").Subrouter()
 	chatroom.HandleFunc("/create/{name}", CR(CreateChatroom)).Methods(http.MethodPost)
+	chatroom.HandleFunc("/list", CR(ListChatroom)).Methods(http.MethodGet)
 	chatroom.HandleFunc("/connect", clientMW(chatroomWSHandler))
 
 	client := r.PathPrefix("/client").Subrouter()
