@@ -36,11 +36,9 @@ func main() {
 
 	client := r.PathPrefix("/client").Subrouter()
 	client.HandleFunc("/list", ListAllClients).Methods(http.MethodGet)
-	// client.HandleFunc("/connect")
 
 	log.Println("Registered Handlers")
 
-	// chat := r.PathPrefix("/chat").Subrouter()
 	log.Printf("Started Server on port : %v", port)
 	http.ListenAndServe(":"+port, r)
 }
