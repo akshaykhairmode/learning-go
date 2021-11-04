@@ -13,10 +13,10 @@ import (
 var rooms = Rooms{Data: map[ChatroomID]*Chatroom{}, RWMutex: new(sync.RWMutex), Wg: new(sync.WaitGroup)}
 
 type Broadcast struct {
-	Message     []byte
-	MessageType int
-	Cid         ClientID
-	Cname       string
+	Message     []byte   //The actual message
+	MessageType int      //as defined by the gorilla websocket package.
+	Cid         ClientID //the UUID of the client.
+	Cname       string   //name of the client
 }
 
 type Chatroom struct {
@@ -113,11 +113,11 @@ func (c *Chatroom) close() *Chatroom {
 		return c
 	}
 
-	rooms.delete(c.ID)
+	rooms.delete(c.ID) //Delete room from the global map.
 
 	c.Lock()
 	defer c.Unlock()
-	close(c.BroadcastChannel)
+	close(c.BroadcastChannel) //Close the broadcast channel.
 	log.Printf("Closed Chatroom ID : %v , Name : %v", c.ID, c.Name)
 	return c
 
@@ -136,11 +136,11 @@ func (c *Chatroom) broadcaster(wg *sync.WaitGroup) {
 	for b := range c.BroadcastChannel {
 
 		for id, cl := range c.Clients {
-			if id == b.Cid { //If its the sender do not send
+			if id == b.Cid { //If its the sender then skip
 				continue
 			}
 
-			chat := ChatData{
+			chat := ChatData{ //Create chat data and write to connections
 				Name:    b.Cname,
 				ID:      b.Cid,
 				Message: string(b.Message),
@@ -173,13 +173,13 @@ var upgrader = websocket.Upgrader{
 
 func chatroomConnect(cl *Client, crid string) {
 
-	rooms.RLock()
-	room := rooms.Data[ChatroomID(crid)]
+	rooms.RLock()                        //Read lock the rooms
+	room := rooms.Data[ChatroomID(crid)] //Get the room
 	rooms.RUnlock()
-	defer room.close()
+	defer room.close() //Close deletes the chatroom if no client is connected.
 
-	room.addClient(cl)
-	defer room.delClient(cl.Id)
+	room.addClient(cl)          //Add client to the chatroom
+	defer room.delClient(cl.Id) //Delete client from the chatroom when this function ends.
 
 	for {
 		mt, message, err := cl.Conn.ReadMessage()
@@ -187,7 +187,7 @@ func chatroomConnect(cl *Client, crid string) {
 			log.Println("Reading Message Error :", err)
 			break
 		}
-		room.pushToBroadcast(message, mt, cl.Id, cl.Name)
+		room.pushToBroadcast(message, mt, cl.Id, cl.Name) //Publish the message to everyone.
 	}
 
 }
@@ -196,24 +196,24 @@ func chatroomWSHandler(cl *Client, rw http.ResponseWriter, r *http.Request) {
 
 	var crid string
 
-	defer cl.Conn.Close()
+	defer cl.Conn.Close() //Close the conn after conn ends.
 
 	qv := r.URL.Query()
-	crid = qv.Get("chatroom_id")
+	crid = qv.Get("chatroom_id") //Get the chatroom id
 
-	if crid == "" {
+	if crid == "" { //If chatroom id is blank then write a control message
 		log.Printf("Got Chatroom ID : %v", crid)
 		data := ChatData{Type: "control", Message: "name or chatroom_id empty"}
 		cl.Conn.WriteJSON(data)
 		return
 	}
 
-	if !chatroomExists(ChatroomID(crid)) {
+	if !chatroomExists(ChatroomID(crid)) { //If chatroom does not exist then write a control message
 		log.Printf("Chatroom ID : %v does not exist", crid)
 		data := ChatData{Type: "control", Message: "given chatroom does not exist"}
 		cl.Conn.WriteJSON(data)
 		return
 	}
 
-	chatroomConnect(cl, crid)
+	chatroomConnect(cl, crid) //Connect to the chatroom
 }

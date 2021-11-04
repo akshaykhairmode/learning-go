@@ -49,29 +49,25 @@ func clientMW(next func(cl *Client, rw http.ResponseWriter, r *http.Request)) ht
 		qv := r.URL.Query()
 		name := qv.Get("name")
 
-		if name == "" {
-			name = generateRandomName()
-		}
-
-		cid = uuid.New().String()
-		h := http.Header{}
+		cid = uuid.New().String() //Create a UUID
+		h := http.Header{}        //Create a header which we will pass to the client which will contain the UUID
 		h.Add(idHeader, cid)
 
-		conn, err = upgrader.Upgrade(rw, r, h)
+		conn, err = upgrader.Upgrade(rw, r, h) //Upgrade the conenction
 		if err != nil {
 			log.Printf("Error while upgrading connection: %v", err)
 			return
 		}
 
-		cl := new(Client)
+		cl := new(Client) //Create a client pointer
 		cl.Conn = conn
 		cl.Id = ClientID(cid)
 		cl.Name = name
 
-		GC.add(cl)
-		defer GC.del(cl.Id)
+		GC.add(cl)          //Add to global clients struct.
+		defer GC.del(cl.Id) //Delete from global clients struct.
 
-		next(cl, rw, r)
+		next(cl, rw, r) //Call the passed handler.
 	}
 
 }
