@@ -47,13 +47,14 @@ func TestRedisPush_Failure(t *testing.T) {
 
 	pushData := "some-data"
 
-	redisConn.On("Do", "RPUSH", q.name, pushData).Return(fmt.Errorf("some-redis-error"))
+	redisConn.On("Do", "RPUSH", q.name, pushData).Return(nil, fmt.Errorf("some-redis-error"))
 	err := q.Push(pushData)
 	assert.Error(t, err, "Expected Error")
 }
 
 func TestRedisPush_Success(t *testing.T) {
-	redisConn := new(mocks.Queue)
+
+	redisConn := new(mocks.Queue) //create a new object of the mockery queue.
 
 	q := RedisQueue{
 		conn: redisConn,
@@ -62,6 +63,9 @@ func TestRedisPush_Success(t *testing.T) {
 
 	pushData := "some-data"
 
+	//Mockery provides on and return methods.
+	//The On method - In the arguments we first pass the function name which we are mocking and then the other parameters. In this case Do is the function which we are calling and other arguments are the ones which are passed when that function is called.
+	//The Return method - Here we pass what we expect the Do function to return.
 	redisConn.On("Do", "RPUSH", q.name, pushData).Return(nil, nil)
 	err := q.Push(pushData)
 	assert.NoError(t, err, "Unexpected Error")
