@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "github.com/akshaykhairmode/grpc/proto";
+
+package grpc;
+
+service Calculator {
+    rpc Add (Request) returns (Reply) {}
+    rpc Sub (Request) returns (Reply) {}
+    rpc Mul (Request) returns (Reply) {}
+    rpc Div (Request) returns (Reply) {}
+  }
+  
+  message Request {
+    repeated int32 nums = 1 [packed = true];
+  }
+  
+
+  message Reply {
+    int32 num = 1;
+  }
