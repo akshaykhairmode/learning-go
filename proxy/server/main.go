@@ -21,7 +21,7 @@ func main() {
 
 		log.Println("Request at endpoint :", string(reqData))
 
-		rw.WriteHeader(http.StatusOK)
+		rw.WriteHeader(http.StatusContinue)
 		rw.Header().Add("test-header", "test-header-value")
 		rw.Write([]byte("Endpoint called"))
 	})))
