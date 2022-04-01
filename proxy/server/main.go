@@ -20,10 +20,9 @@ func main() {
 		}
 
 		log.Println("Request at endpoint :", string(reqData))
-
-		rw.WriteHeader(http.StatusContinue)
 		rw.Header().Add("test-header", "test-header-value")
-		rw.Write([]byte("Endpoint called"))
+		rw.WriteHeader(http.StatusAccepted)
+		rw.Write([]byte("Endpoint called\n"))
 	})))
 
 }

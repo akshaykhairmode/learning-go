@@ -34,6 +34,9 @@ func main() {
 		//Set the request headers as whatever was passed by caller
 		req.Header = r.Header.Clone()
 
+		//Set the query parameters
+		req.URL.RawQuery = r.URL.RawQuery
+
 		//create a http client, timeout should be mentioned or it will never timeout.
 		client := http.Client{
 			Timeout: 5 * time.Second,
@@ -65,13 +68,13 @@ func main() {
 
 		log.Println("Forward Request Response", string(respData))
 
-		//set the statuscode whatever we got from the response
-		rw.WriteHeader(resp.StatusCode)
-
-		//Copy the response headers to the actual response
+		//Copy the response headers to the actual response. DO THIS BEFORE CALLING WRITEHEADER.
 		for k, v := range resp.Header {
 			rw.Header()[k] = v
 		}
+
+		//set the statuscode whatever we got from the response
+		rw.WriteHeader(resp.StatusCode)
 
 		//Copy the response body to the actual response
 		_, err = io.Copy(rw, resp.Body)
