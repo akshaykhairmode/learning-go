@@ -7,6 +7,7 @@ import (
 	"learning-mockery/mocks"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestRedisPop_Success(t *testing.T) {
@@ -69,4 +70,24 @@ func TestRedisPush_Success(t *testing.T) {
 	redisConn.On("Do", "RPUSH", q.name, pushData).Return(nil, nil)
 	err := q.Push(pushData)
 	assert.NoError(t, err, "Unexpected Error")
+}
+
+func TestRedisPopWithRetry_Success(t *testing.T) {
+	redisConn := new(mocks.Queue)
+
+	q := RedisQueue{
+		conn: redisConn,
+		name: "redis-queue",
+	}
+
+	redisConn.On("Do", "LPOP", q.name).Return("", fmt.Errorf("some-redis-error")).Once()
+	redisConn.On("Do", "LPOP", q.name).Return("", fmt.Errorf("some-redis-error")).Once()
+	redisConn.On("Do", "LPOP", q.name).Return("", fmt.Errorf("some-redis-error")).Once()
+	redisConn.On("Do", "LPOP", q.name).Return("", fmt.Errorf("some-redis-error")).Once()
+	redisConn.On("Do", "LPOP", q.name).Return("some-data", nil).Once()
+
+	str, err := q.PopWithRetry(5)
+	assert.Equal(t, "some-data", str)
+	assert.NoError(t, err, "Unexpected Error")
+	mock.AssertExpectationsForObjects(t, redisConn)
 }
