@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+learning-go.code-workspace
 
 # Test binary, built with `go test -c`
 *.test
