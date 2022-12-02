@@ -62,3 +62,35 @@ func Hgetall(hash string) (map[string]string, error) {
 	}
 	return val, err
 }
+
+func TTL(key string) (int, error) {
+	ttl, err := rgo.Int(conn.Do("TTL", key))
+	if err != nil {
+		return ttl, fmt.Errorf("error while doing SETEX command : %v", err)
+	}
+	return ttl, nil
+}
+
+func SetEx(key, expiry, value string) error {
+	_, err := conn.Do("SETEX", key, expiry, value)
+	if err != nil {
+		return fmt.Errorf("error while doing SETEX command : %v", err)
+	}
+	return nil
+}
+
+func Expire(key, expiry string) error {
+	_, err := conn.Do("EXPIRE", key, expiry)
+	if err != nil {
+		return fmt.Errorf("error while doing EXPIRE command : %v", err)
+	}
+	return nil
+}
+
+func SetWithExpiry(key, expiry, value string) error {
+	_, err := conn.Do("SET", key, value, "EX", expiry)
+	if err != nil {
+		return fmt.Errorf("error while doing EXPIRE command : %v", err)
+	}
+	return nil
+}
