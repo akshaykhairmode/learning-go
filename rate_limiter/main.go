@@ -24,7 +24,3 @@ func main() {
 	http.ListenAndServe(":9000", nil)
 
 }
-
-//date;xargs -I % -P 10 curl -I "localhost:9000/health" < <(printf '%s\n' {1..50}) 2>&1 | grep "204 No Content" | wc -l;date
-
-//date;xargs -I % -P 10 curl -I "localhost:9000/rate-limit" < <(printf '%s\n' {1..50}) 2>&1 | grep "204 No Content" | wc -l;date
