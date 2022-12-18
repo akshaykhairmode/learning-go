@@ -8,7 +8,8 @@ import (
 )
 
 type status struct {
-	Limit, Curr uint64
+	Limit uint64
+	Count map[string]uint64
 }
 
 type limiter struct {
@@ -21,52 +22,63 @@ func (l *limiter) SetRateLimit(endpoint string, limit uint64) {
 	defer l.mux.Unlock()
 	l.det[endpoint] = &status{
 		Limit: limit,
-		Curr:  0,
+		Count: make(map[string]uint64),
 	}
 }
 
-func (l *limiter) incr(endpoint string) error {
+func (l *limiter) incr(r *http.Request) error {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
-	status, ok := l.det[endpoint]
-	if !ok {
-		log.Println("incr: endpoint not found")
+	status := l.getStatus(r)
+	if status == nil {
 		return nil
 	}
 
-	if status.Curr >= status.Limit {
-		return fmt.Errorf("rate limit reached for %s", endpoint)
+	if status.Count[r.RemoteAddr] >= status.Limit {
+		return fmt.Errorf("rate limit reached for %s", r.RequestURI)
 	}
 
-	status.Curr++
+	status.Count[r.RemoteAddr]++
 	return nil
 }
 
-func (l *limiter) decr(endpoint string) {
+func (l *limiter) decr(r *http.Request) {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 
-	status, ok := l.det[endpoint]
-	if !ok {
-		log.Println("decr: endpoint not found")
+	status := l.getStatus(r)
+	if status == nil {
 		return
 	}
 
-	status.Curr--
+	status.Count[r.RemoteAddr]--
 }
 
 func (l *limiter) Middleware(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := l.incr(r.RequestURI); err != nil {
+		if err := l.incr(r); err != nil {
 			w.WriteHeader(http.StatusTooManyRequests)
 			w.Write([]byte(err.Error()))
 			return
 		}
-		defer l.decr(r.RequestURI)
+		defer l.decr(r)
 		handler.ServeHTTP(w, r)
 	}
 }
+
+func (l *limiter) getStatus(r *http.Request) *status {
+
+	status, ok := l.det[r.RequestURI]
+
+	if !ok {
+		log.Printf("endpoint %s not found", r.RequestURI)
+		return nil
+	}
+
+	return status
+}
+
 func NewLimiter() limiter {
 	return limiter{
 		det: map[string]*status{},
