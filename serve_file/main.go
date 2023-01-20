@@ -61,15 +61,22 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func setHeaders(w http.ResponseWriter, name, len string) {
+	//Represents binary file
 	w.Header().Set("Content-Type", "application/octet-stream")
+	//Tells client what filename should be used.
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, name))
+	//The length of the data.
 	w.Header().Set("Content-Length", len)
+	//No cache headers.
 	w.Header().Set("Cache-Control", "private")
+	//No cache headers.
 	w.Header().Set("Pragma", "private")
+	//No cache headers.
 	w.Header().Set("Expires", "Mon, 26 Jul 1997 05:00:00 GMT")
 }
 
 func handleLargeFile(w http.ResponseWriter, r *http.Request) {
+	//Open file
 	f, err := os.Open(LargeFileName)
 	if err != nil {
 		handleError(err, w)
@@ -77,14 +84,18 @@ func handleLargeFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 
+	//read the file info
 	info, err := f.Stat()
 	if err != nil {
 		handleError(err, w)
 		return
 	}
 
+	//Set the headers
 	setHeaders(w, LargeFileName, strconv.Itoa(int(info.Size())))
 	w.WriteHeader(http.StatusOK)
+
+	//Copy without loading everything in memory
 	n, err := io.Copy(w, f)
 	if err != nil {
 		handleError(err, w)
