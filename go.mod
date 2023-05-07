@@ -1,3 +1,3 @@
-module rate-limiter
+module github.com/akshaykhairmode/learning-go
 
-go 1.17
+go 1.19
